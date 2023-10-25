@@ -18,7 +18,7 @@
 
 #define START_OF_SECTOR(addr) ((addr >> (LOG2_BLOCK_SIZE + LOG2_SECTOR_SIZE)) << (LOG2_BLOCK_SIZE + LOG2_SECTOR_SIZE))
 #define START_OF_BLOCK(addr) ((addr >> LOG2_BLOCK_SIZE) << LOG2_BLOCK_SIZE)
-#define LINE_IN_SECTOR(addr) (addr % (SECTOR_SIZE_blocks * BLOCK_SIZE))
+#define LINE_IN_SECTOR(addr) ((addr >> LOG2_BLOCK_SIZE) % SECTOR_SIZE_blocks)
 
 struct SHT_entry{
     bool valid;
@@ -42,16 +42,16 @@ class SFP_prefetcher {
         // Spatial Footprint History Table
         // Used to store the previously recorded footprints.
         // Each entry consists of one (or more, depends on the configuration) of the previously saved footprints
-        
         std::map<uint32_t, SHT_entry> SHT;
-
         // Active Sector Table
         // Used to record the footprint while a sector is active in the cache
         // Indexed by the sector address
-        
         std::map<uint64_t, AST_entry> AST;
         std::queue<uint32_t> SHT_use_order; // queue used to keep track of least recently used SHT entry (the one to evict when table is full)
 
+
+        // Constructor
+        SFP_prefetcher();
         //  Fetches all blocks marked in the footprint of the given SHT entry
         void fetchPredictedFootprint(SHT_entry &entry, uint64_t addr, CACHE* cache);
 

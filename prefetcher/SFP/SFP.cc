@@ -6,6 +6,12 @@
 #include "champsim.h"
 #include "sfp.h"
 
+// Constructor
+SFP_prefetcher::SFP_prefetcher() {
+  SHT = std::map<uint32_t, SHT_entry>();
+  AST = std::map<uint64_t, AST_entry>();
+  SHT_use_order = std::queue<uint32_t>();
+}
 // Default constructor method
 SHT_entry::SHT_entry() : valid(false) {
   for (int i = 0; i < NUM_FOOTPRINTS_USED; i++) {
@@ -29,7 +35,7 @@ void SFP_prefetcher::fetchPredictedFootprint(SHT_entry &entry, uint64_t addr, CA
     if (entry.footprints[0][i]){
       // obtain address as start of sector + i * block size
       pf_address = START_OF_SECTOR(addr) | (i << LOG2_BLOCK_SIZE);
-      cache->prefetch_line(pf_address, 1, 0);  // 1 means "fill_this_level", we want to prefetch to L1 cache of course. 0 is the metadata (not used)
+      cache->prefetch_line(pf_address >> LOG2_BLOCK_SIZE, 1, 0);  // 1 means "fill_this_level", we want to prefetch to L1 cache of course. 0 is the metadata (not used)
     } 
   }
 }
@@ -37,7 +43,7 @@ void SFP_prefetcher::fetchPredictedFootprint(SHT_entry &entry, uint64_t addr, CA
 // Index into table to check if entry is present
 bool SFP_prefetcher::hasRecordedFootprint(uint64_t addr, uint64_t ip) {
   uint32_t tag = getTag(addr, ip);
-  if (SHT[tag].valid == true) {
+  if (this->SHT[tag].valid == true) {
     return true;
   }
   return false;
@@ -45,7 +51,7 @@ bool SFP_prefetcher::hasRecordedFootprint(uint64_t addr, uint64_t ip) {
 
 void SFP_prefetcher::invalidateRecordedFootprint(uint64_t addr, uint64_t ip) {
   uint32_t tag = getTag(addr, ip);
-  SHT[tag].valid = false;
+  this->SHT[tag].valid = false;
 }
 
 bool SFP_prefetcher::isActive(uint64_t sector){
@@ -70,8 +76,8 @@ void SFP_prefetcher::updateAST(uint64_t sector, uint64_t addr) {
 
 // Removes sector from the AST and transfer the recorded footprint to the SHT
 void SFP_prefetcher::deactivateSector(uint64_t sector) {
-  uint32_t SHTi = AST[sector].SHTi;
-  for (int i = 0; i <= FOOTPRINT_SIZE; i++) {
+  uint32_t SHTi = this->AST[sector].SHTi;
+  for (int i = 0; i < FOOTPRINT_SIZE; i++) {
     this->SHT[SHTi].footprints[0][i] = this->AST[sector].footprint[i];
   }
   this->SHT[SHTi].valid = true;
@@ -90,7 +96,7 @@ void SFP_prefetcher::fetchDefaultPrediction(uint64_t addr, CACHE* cache){
   uint64_t pf_address;
   for (int i = 1; i <= 3; i++){
     pf_address = START_OF_BLOCK(addr) + (i << LOG2_BLOCK_SIZE);
-    cache->prefetch_line(pf_address, 1, 0);  // 1 means "fill_this_level", we want to prefetch to L1 cache of course. 0 is the metadata (not used)
+    cache->prefetch_line(pf_address >> LOG2_BLOCK_SIZE, 1, 0);  // 1 means "fill_this_level", we want to prefetch to L1 cache of course. 0 is the metadata (not used)
   }
 }
 // Recovery mechanism : fetches lines when we notice we did not fetch all the necessary ones at sector activation.
@@ -98,7 +104,7 @@ void SFP_prefetcher::fetchDefaultPrediction(uint64_t addr, CACHE* cache){
 void SFP_prefetcher::fetchRecovery(uint64_t sector, uint64_t addr, CACHE* cache) {
   if (this->AST[sector].fetched_by_SFP) {
     // If we used the footprint data to prefetch, we only fetch the necessary block.
-    cache->prefetch_line(START_OF_BLOCK(addr), 1, 0);
+    cache->prefetch_line(START_OF_BLOCK(addr) >> LOG2_BLOCK_SIZE, 1, 0);
   }
   else {
     // If we originally used the default predictor, we use it again to recover
