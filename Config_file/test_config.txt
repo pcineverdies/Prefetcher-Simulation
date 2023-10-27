@@ -1,0 +1,36 @@
+{
+    "executable_name": "STM32H725xE/G",
+    "num_cores": 1,
+
+    "ooo_cpu": [
+        {
+            "frequency": 550,
+	    "sq_size": 4,
+            "decode_latency": 1,
+            "dispatch_latency": 1,
+            "schedule_latency": 1,
+            "execute_latency": 1
+        }
+    ],
+    "L1I": {
+        "sets": 500,
+        "ways": 2,
+        "rq_size": 64,
+        "wq_size": 64,
+        "prefetch_as_load": false,
+        "virtual_prefetch": true,
+        "prefetch_activate": "LOAD,PREFETCH",
+        "prefetcher": "no_instr"
+    },
+    "L1D": {
+        "sets": 250,
+        "ways": 4,
+        "rq_size": 64,
+        "wq_size": 64,
+        "prefetch_as_load": false,
+        "virtual_prefetch": false,
+        "prefetch_activate": "LOAD,PREFETCH",
+        "prefetcher": "no"
+    }
+
+}
