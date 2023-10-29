@@ -33,4 +33,36 @@
         "prefetcher": "no"
     }
 
+    "L2C": {
+        "sets": 0 ,
+        "ways": 0 ,
+        "rq_size": 0,
+        "wq_size": 0,
+        "pq_size": 0,
+        "mshr_size": 0,
+        "latency": 0,
+        "max_tag_check": 0,
+        "max_fill": 0,
+        "prefetch_as_load": false,
+        "virtual_prefetch": false,
+        "prefetch_activate": "LOAD, PREFETCH",
+        "prefetcher": "no"
+	}
+    "LLC": {
+        "frequency": 0,
+        "sets": 0,
+        "ways": 0,
+        "rq_size": 0,
+        "wq_size": 0,
+        "pq_size": 0,
+        "mshr_size": 0,
+        "latency": 0,
+        "max_tag_check": 0,
+        "max_fill": 0,
+        "prefetch_as_load": flase,
+        "virtual_prefetch": false,
+        "prefetch_activate": "LOAD,PREFETCH",
+        "prefetcher": "no",
+        "replacement": "no"
+    }
 }
