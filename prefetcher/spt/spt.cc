@@ -2,6 +2,7 @@
 #include <array>
 #include <map>
 #include <optional>
+#include <iostream>
 
 #include "cache.h"
 
@@ -63,10 +64,13 @@ public:
       if(hit->valid){
         int64_t stride = static_cast<int64_t>(cl_addr) - static_cast<int64_t>(hit->last_cl_addr);
         if(stride != 0) {
-          auto addr_delta = stride * BLOCK_SIZE;
+          auto addr_delta = stride;
           auto pf_address = static_cast<uint64_t>(cl_addr + addr_delta);
-
-          cache->prefetch_line(pf_address, 1, 0);
+          // Only prefetch if address + stride goes outside of the current block
+          if (pf_address >> LOG2_BLOCK_SIZE != cl_addr >> LOG2_BLOCK_SIZE) 
+          {
+            cache->prefetch_line(pf_address, 1, 0);
+          }
         }
       }
       update(ip, cl_addr);
@@ -86,7 +90,7 @@ void CACHE::prefetcher_cycle_operate() {}
 
 uint32_t CACHE::prefetcher_cache_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, bool useful_prefetch, uint8_t type, uint32_t metadata_in)
 {
-  prefetcher.prefetch(ip, addr >> LOG2_BLOCK_SIZE, this);
+  prefetcher.prefetch(ip, addr, this);
   return metadata_in;
 }
 
@@ -95,4 +99,6 @@ uint32_t CACHE::prefetcher_cache_fill(uint64_t addr, uint32_t set, uint32_t way,
   return metadata_in;
 }
 
-void CACHE::prefetcher_final_stats() {}
+void CACHE::prefetcher_final_stats() {
+    std::cout << "Total number of elements ever stored in prediction table :" << prefetcher.current_id << std::endl;
+}

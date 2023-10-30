@@ -33,9 +33,8 @@ void SFP_prefetcher::fetchPredictedFootprint(SHT_entry &entry, uint64_t addr, CA
   uint64_t pf_address;
   for (int i = 0; i < FOOTPRINT_SIZE; i++){
     if (entry.footprints[0][i]){
-      // obtain address as start of sector + i * block size
-      pf_address = START_OF_SECTOR(addr) | (i << LOG2_BLOCK_SIZE);
-      cache->prefetch_line(pf_address >> LOG2_BLOCK_SIZE, 1, 0);  // 1 means "fill_this_level", we want to prefetch to L1 cache of course. 0 is the metadata (not used)
+      pf_address = START_OF_SECTOR(addr) + i * BLOCK_SIZE;
+      cache->prefetch_line(pf_address, 1, 0);  // 1 means "fill_this_level", we want to prefetch to L1 cache of course. 0 is the metadata (not used)
     } 
   }
 }
@@ -96,7 +95,7 @@ void SFP_prefetcher::fetchDefaultPrediction(uint64_t addr, CACHE* cache){
   uint64_t pf_address;
   for (int i = 1; i <= 3; i++){
     pf_address = START_OF_BLOCK(addr) + (i << LOG2_BLOCK_SIZE);
-    cache->prefetch_line(pf_address >> LOG2_BLOCK_SIZE, 1, 0);  // 1 means "fill_this_level", we want to prefetch to L1 cache of course. 0 is the metadata (not used)
+    cache->prefetch_line(pf_address , 1, 0);  // 1 means "fill_this_level", we want to prefetch to L1 cache of course. 0 is the metadata (not used)
   }
 }
 // Recovery mechanism : fetches lines when we notice we did not fetch all the necessary ones at sector activation.
@@ -104,7 +103,8 @@ void SFP_prefetcher::fetchDefaultPrediction(uint64_t addr, CACHE* cache){
 void SFP_prefetcher::fetchRecovery(uint64_t sector, uint64_t addr, CACHE* cache) {
   if (this->AST[sector].fetched_by_SFP) {
     // If we used the footprint data to prefetch, we only fetch the necessary block.
-    cache->prefetch_line(START_OF_BLOCK(addr) >> LOG2_BLOCK_SIZE, 1, 0);
+    // This is equivalent to just servicing the miss, so the next line was useless.
+    // cache->prefetch_line(START_OF_BLOCK(addr) , 1, 0);
   }
   else {
     // If we originally used the default predictor, we use it again to recover
