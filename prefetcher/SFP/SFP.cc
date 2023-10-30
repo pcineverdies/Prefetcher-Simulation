@@ -144,36 +144,37 @@ uint32_t CACHE::prefetcher_cache_operate(uint64_t addr, uint64_t ip, uint8_t cac
   // metadata_in: the metadata carried along by the packet. (valid/dirty bits ecc.. that will be stored with the block)
 
   // The function should return metadata that will be stored alongside the block.
+  if (type == access_type::LOAD) {
+    uint64_t sector = addr / (SECTOR_SIZE_blocks* BLOCK_SIZE);
 
-  uint64_t sector = addr / (SECTOR_SIZE_blocks* BLOCK_SIZE);
-
-  if (cache_hit) {
-    if (SFP.isActive(sector)) {
-      SFP.updateAST(sector, addr);
-    }
-  }
-  else {
-    if (SFP.isActive(sector)) {
-      // This means we either did not prefetch all necessary lines when activating the sector 
-      // Or enough time has passed so that a previously prefetched line has been evicted from the cache
-      SFP.fetchRecovery(sector, addr, this);
-      if (SFP.AST[sector].footprint[LINE_IN_SECTOR(addr)] == true) {
-        SFP.deactivateSector(sector);
-        SFP.activateSector(sector, addr, ip);
+    if (cache_hit) {
+      if (SFP.isActive(sector)) {
+        SFP.updateAST(sector, addr);
       }
     }
     else {
-      SFP.activateSector(sector, addr, ip);
-      if (SFP.hasRecordedFootprint(addr, ip)) {
-        SFP.fetchPredictedFootprint(SFP.SHT[getTag(addr, ip)], addr, this);
-        SFP.invalidateRecordedFootprint(addr, ip);
-        SFP.AST[sector].fetched_by_SFP = true;
+      if (SFP.isActive(sector)) {
+        // This means we either did not prefetch all necessary lines when activating the sector 
+        // Or enough time has passed so that a previously prefetched line has been evicted from the cache
+        SFP.fetchRecovery(sector, addr, this);
+        if (SFP.AST[sector].footprint[LINE_IN_SECTOR(addr)] == true) {
+          SFP.deactivateSector(sector);
+          SFP.activateSector(sector, addr, ip);
+        }
       }
       else {
-        SFP.fetchDefaultPrediction(addr, this);
+        SFP.activateSector(sector, addr, ip);
+        if (SFP.hasRecordedFootprint(addr, ip)) {
+          SFP.fetchPredictedFootprint(SFP.SHT[getTag(addr, ip)], addr, this);
+          SFP.invalidateRecordedFootprint(addr, ip);
+          SFP.AST[sector].fetched_by_SFP = true;
+        }
+        else {
+          SFP.fetchDefaultPrediction(addr, this);
+        }
       }
+      SFP.updateAST(sector, addr);
     }
-    SFP.updateAST(sector, addr);
   }
   return metadata_in;
 }

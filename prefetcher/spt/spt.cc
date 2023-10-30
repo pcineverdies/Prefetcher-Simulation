@@ -90,7 +90,10 @@ void CACHE::prefetcher_cycle_operate() {}
 
 uint32_t CACHE::prefetcher_cache_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, bool useful_prefetch, uint8_t type, uint32_t metadata_in)
 {
-  prefetcher.prefetch(ip, addr, this);
+  if (type == access_type::LOAD)
+  {
+    prefetcher.prefetch(ip, addr, this);
+  }
   return metadata_in;
 }
 
