@@ -127,7 +127,7 @@ public:
       
       auto stride = compute_stride(cl_addr, *hit);
       if(stride.has_value()){
-        auto addr_delta = *stride * BLOCK_SIZE;
+        auto addr_delta = *stride;
         auto pf_address = static_cast<uint64_t>(cl_addr + addr_delta);
 
         cache->prefetch_line(pf_address, 1, 0);
@@ -150,7 +150,7 @@ void CACHE::prefetcher_cycle_operate() {}
 uint32_t CACHE::prefetcher_cache_operate(uint64_t addr, uint64_t ip, uint8_t cache_hit, bool useful_prefetch, uint8_t type, uint32_t metadata_in)
 {
   if(static_cast<std::underlying_type_t<access_type>>(type)  == static_cast<std::underlying_type_t<access_type>>(access_type::LOAD)){
-    prefetcher.prefetch(ip, addr >> LOG2_BLOCK_SIZE, this);
+    prefetcher.prefetch(ip, addr, this);
   }
   return metadata_in;
 }
