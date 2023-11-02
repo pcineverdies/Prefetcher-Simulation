@@ -11,10 +11,14 @@
 #define SECTOR_SIZE_blocks FOOTPRINT_SIZE
 #define LOG2_SECTOR_SIZE LOG2_FOOTPRINT_SIZE
 
+#define SHT_WAYS 4
 #define SHT_SIZE 1024
 #define LOG2_SHT_SIZE 10
+#define AST_WAYS 1
 #define AST_SIZE 32
 #define LOG2_AST_SIZE 5
+
+#define RECOVERY_BLOCKS 2
 
 #define START_OF_SECTOR(addr) ((addr >> (LOG2_BLOCK_SIZE + LOG2_SECTOR_SIZE)) << (LOG2_BLOCK_SIZE + LOG2_SECTOR_SIZE))
 #define START_OF_BLOCK(addr) ((addr >> LOG2_BLOCK_SIZE) << LOG2_BLOCK_SIZE)
@@ -25,15 +29,21 @@ struct SHT_entry{
     bool footprints[NUM_FOOTPRINTS_USED][FOOTPRINT_SIZE];
     // Default constructor method
     SHT_entry();
+    uint64_t getSetIndex();
+    uint32_t getTag();
 };
 
 struct AST_entry{
     uint32_t SHTi; // index inside the SHT
+    uint64_t sector; //number (address) of sector currently stored 
     bool fetched_by_SFP; // flag to choose the appropriate recovery mechanism in case of miss
     bool active = false;
     bool footprint[FOOTPRINT_SIZE];
     // Default constructor method
     AST_entry();
+    uint64_t getSetIndex();
+    uint32_t getTag();
+
 };
 
 // Spatial Footprint Predictor

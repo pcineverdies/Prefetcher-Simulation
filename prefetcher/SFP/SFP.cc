@@ -93,7 +93,7 @@ void SFP_prefetcher::deactivateSector(uint64_t sector) {
 //  Simply fetches the next three blocks in the sector 
 void SFP_prefetcher::fetchDefaultPrediction(uint64_t addr, CACHE* cache){
   uint64_t pf_address;
-  for (int i = 1; i <= 3; i++){
+  for (int i = 1; i <= RECOVERY_BLOCKS; i++){
     pf_address = START_OF_BLOCK(addr) + (i << LOG2_BLOCK_SIZE);
     cache->prefetch_line(pf_address , 1, 0);  // 1 means "fill_this_level", we want to prefetch to L1 cache of course. 0 is the metadata (not used)
   }
@@ -144,7 +144,7 @@ uint32_t CACHE::prefetcher_cache_operate(uint64_t addr, uint64_t ip, uint8_t cac
   // metadata_in: the metadata carried along by the packet. (valid/dirty bits ecc.. that will be stored with the block)
 
   // The function should return metadata that will be stored alongside the block.
-  if (type == access_type::LOAD) {
+  if (static_cast<std::underlying_type_t<access_type>>(type)  == static_cast<std::underlying_type_t<access_type>>(access_type::LOAD)) {
     uint64_t sector = addr / (SECTOR_SIZE_blocks* BLOCK_SIZE);
 
     if (cache_hit) {
