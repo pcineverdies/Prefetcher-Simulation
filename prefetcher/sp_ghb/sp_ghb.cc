@@ -7,7 +7,7 @@
 
 namespace
 {
-struct spt_ghb_prefetcher {
+struct sp_ghb_prefetcher {
   struct ghb_entry {
     uint64_t last_cl_addr = 0;
     struct ghb_entry *next = nullptr;
@@ -32,13 +32,12 @@ struct spt_ghb_prefetcher {
 
   int current_ghb_id = 0; 
 
-  std::optional<ghb_entry> check_hit(uint64_t ip)
+  std::optional<ghb_entry*> check_hit(uint64_t ip)
   {
-
     int hit_id = ip % INDEX_TABLE_SIZE;
 
     if(index_table[hit_id].ghb_entry_pointer != nullptr){
-      return std::optional<ghb_entry>{*index_table[hit_id].ghb_entry_pointer};
+      return std::optional<ghb_entry*>{index_table[hit_id].ghb_entry_pointer};
     }else{
       return std::nullopt;
     }
@@ -100,15 +99,21 @@ struct spt_ghb_prefetcher {
 
   }
 
-  std::optional<int64_t> compute_stride(uint64_t cl_addr, ghb_entry hit)
+  std::optional<int64_t> compute_stride(uint64_t cl_addr, ghb_entry *hit)
   {
     uint64_t current_addr = cl_addr;
     int64_t strides[NB_STRIDES_COMPUTED];
-    for(int i = 0; i < NB_STRIDES_COMPUTED; i++){
-      int64_t stride = static_cast<int64_t>(current_addr) - static_cast<int64_t>(hit.last_cl_addr);
+
+    ghb_entry *entry = hit;
+
+    int i = 0;
+
+    while((*entry).next != nullptr && i < NB_STRIDES_COMPUTED){
+      int64_t stride = static_cast<int64_t>(current_addr) - static_cast<int64_t>((*entry).last_cl_addr);
       strides[i] = stride;
-      current_addr = hit.last_cl_addr;
-      hit = *hit.next;
+      current_addr = (*entry).last_cl_addr;
+      entry = (*entry).next;
+      i++;
     }
     if(std::all_of(strides, strides+NB_STRIDES_COMPUTED, [strides](int x){ return x==strides[0];}) && strides[0] != 0){
       return std::optional<int64_t>{strides[0]};
@@ -121,18 +126,20 @@ struct spt_ghb_prefetcher {
 public:
   void prefetch(uint64_t ip, uint64_t cl_addr, CACHE* cache)
   {
+    
     auto hit = check_hit(ip);
 
     if(hit.has_value()){
-      
-      auto stride = compute_stride(cl_addr, *hit);
+      ghb_entry *entry;
+      entry = *hit;
+      auto stride = compute_stride(cl_addr, entry);
       if(stride.has_value()){
         auto addr_delta = *stride;
         auto pf_address = static_cast<uint64_t>(cl_addr + addr_delta);
 
         cache->prefetch_line(pf_address, 1, 0);
       }
-      insert(ip, cl_addr, &*hit);
+      insert(ip, cl_addr, entry);
     }else{
       insert(ip, cl_addr);
     }
@@ -140,7 +147,7 @@ public:
   }
 
 };
-spt_ghb_prefetcher prefetcher;
+sp_ghb_prefetcher prefetcher;
 } // namespace
 
 void CACHE::prefetcher_initialize() {}
