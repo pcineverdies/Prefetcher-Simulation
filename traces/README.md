@@ -22,6 +22,4 @@ Since both the traces are big in size, you can download them from [this Gdrive f
         
     - *To reduce cache misses and accelerate program performance somewhat, the elements of struct node and struct arc, respectively, are rearranged according to the proposals made in "Memory Profiling using Hardware Counters" by Marty Itzkowitz, Brian Wylie, Christopher Aoki, and Nicolai Kosche (http://www.sc-conference.org/sc2003/paperpdfs/pap182.pdf)*
 
-2. The second trace is produced from the execution of a [c++ face recognition program](https://github.com/ShiqiYu/libfacedetection/).
-All the source files can be found in the folder `/simulation_src/`.
-The dataset used to run the algorithm is `WIDER FACE`, which can be found [here](https://shuoyang1213.me/WIDERFACE/).
+2. The second trace corresponds to the execution of ResNet18, and comes from [here](https://github.com/rachit173/ChampSim/tree/master).
