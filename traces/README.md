@@ -2,7 +2,7 @@
 
 Since both the traces are big in size, you can download them from [this Gdrive folder](https://drive.google.com/drive/folders/19CfteU82DXrsyzXzm1HmTaKhj6BXxOmd?usp=sharing).
 
-1. The trace `605.mcf_r` comes from the SPEC CPU®2017 benchmark; it comes from [this repository](https://dpc3.compas.cs.stonybrook.edu/champsim-traces/speccpu/). According to [its description](https://www.spec.org/cpu2017/Docs/benchmarks/505.mcf_r.html), here is its description:
+1. The trace `605.mcf_r` comes from the SPEC CPU®2017 benchmark; it comes from [this repository](https://dpc3.compas.cs.stonybrook.edu/champsim-traces/speccpu/). According to [its description](https://www.spec.org/cpu2017/Docs/benchmarks/505.mcf_r.html):
 
     *605.mcf_s is a benchmark which is derived from MCF, a program used for single-depot vehicle scheduling in public mass transportation. The program is written in C. The benchmark version uses almost exclusively integer arithmetic.*
 
@@ -23,3 +23,7 @@ Since both the traces are big in size, you can download them from [this Gdrive f
     - *To reduce cache misses and accelerate program performance somewhat, the elements of struct node and struct arc, respectively, are rearranged according to the proposals made in "Memory Profiling using Hardware Counters" by Marty Itzkowitz, Brian Wylie, Christopher Aoki, and Nicolai Kosche (http://www.sc-conference.org/sc2003/paperpdfs/pap182.pdf)*
 
 2. The second trace corresponds to the execution of ResNet18, and comes from [here](https://github.com/rachit173/ChampSim/tree/master).
+
+3. The trace `638.imagick_s` comes from the SPEC CPU®2017 benchmark; it comes from [this repository](https://dpc3.compas.cs.stonybrook.edu/champsim-traces/speccpu/). According to [its description](https://www.spec.org/cpu2017/Docs/benchmarks/638.imagick_s.html):
+
+    *ImageMagick is a software suite to create, edit, compose, or convert bitmap images. The SPEC CPU®2017 benchmark version uses the convert component of ImageMagick to perform various transforms on input images.*
